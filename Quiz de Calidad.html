@@ -1,0 +1,525 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Quiz de Calidad</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;600;700;800&display=swap">
+<style>
+/* Layout: one centered column. Header with coin counter, then a level map or a single quiz card with a gray progress bar that fills green. */
+:root{
+  --bg:#f3f0ff; --surface:#ffffff; --surface2:#ebe6ff; --ink:#2b2750; --muted:#6a649b; --line:#d9d2fa;
+  --sky:#bde0ff; --lilac:#d4c5ff; --mint:#b6ecd2; --peach:#ffd2c2; --butter:#fff0ae; --rose:#ffc1d3;
+  --track:#d6d6e3; --done:#79d6a6; --done-ink:#17593f; --bad-ink:#7a2646; --pastel-ink:#2b2750;
+  --shadow:rgba(90,70,170,.16); --blob1:rgba(189,224,255,.55); --blob2:rgba(255,193,211,.45);
+  --font-display:'Fredoka','Nunito',system-ui,sans-serif; --font-body:'Nunito',system-ui,-apple-system,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16142b; --surface:#221f40; --surface2:#2d2952; --ink:#f1eeff; --muted:#aca6dc; --line:#3b3669;
+    --track:#3a3a56; --shadow:rgba(0,0,0,.4); --blob1:rgba(110,140,220,.18); --blob2:rgba(220,120,170,.14);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16142b; --surface:#221f40; --surface2:#2d2952; --ink:#f1eeff; --muted:#aca6dc; --line:#3b3669;
+  --track:#3a3a56; --shadow:rgba(0,0,0,.4); --blob1:rgba(110,140,220,.18); --blob2:rgba(220,120,170,.14);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background-color:var(--bg);
+  background-image:radial-gradient(520px 340px at 8% -4%,var(--blob1),transparent 70%),radial-gradient(520px 360px at 100% 8%,var(--blob2),transparent 70%);
+  background-attachment:fixed;
+  color:var(--ink); font-family:var(--font-body); font-size:16px; line-height:1.45;
+  min-height:100vh; padding-block:14px 48px;
+  padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.app{max-width:760px;margin:0 auto}
+svg{display:block}
+
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}
+.brand{font-family:var(--font-display);font-weight:600;font-size:15px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.hud{display:flex;align-items:center;gap:10px}
+.coins{display:flex;align-items:center;gap:8px;background:var(--surface);border:2px solid var(--line);box-shadow:0 3px 0 var(--line);border-radius:999px;padding:5px 14px 5px 8px;font-family:var(--font-display);font-weight:600;font-size:18px;font-variant-numeric:tabular-nums}
+.coins.bump{animation:bump .5s}
+@keyframes bump{40%{transform:scale(1.18) rotate(-3deg)}}
+.iconbtn{width:42px;height:42px;display:grid;place-items:center;background:var(--surface);border:2px solid var(--line);box-shadow:0 3px 0 var(--line);border-radius:50%;color:var(--ink)}
+.iconbtn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+
+/* home */
+.eyebrow{font-weight:800;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:var(--font-display);font-weight:700;font-size:clamp(30px,7vw,46px);line-height:1.05;margin:6px 0 10px;text-wrap:balance}
+.lead{max-width:56ch;color:var(--muted);font-weight:600;margin:0 0 22px}
+.seg{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px}
+.seg button{background:var(--surface);border:2px solid var(--line);box-shadow:0 4px 0 var(--line);border-radius:16px;padding:9px 16px;font-weight:800;color:var(--muted);transition:transform .12s}
+.seg button small{display:block;font-weight:700;font-size:11px;opacity:.85}
+.seg button[aria-pressed="true"]{background:var(--lilac);border-color:var(--lilac);box-shadow:0 4px 0 #a994ec;color:var(--pastel-ink)}
+.seg button:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+.map{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+.node{position:relative;background:var(--surface);border:2px solid var(--line);box-shadow:0 5px 0 var(--line);border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.node.locked{opacity:.78;background:var(--surface2);box-shadow:none}
+.node.master{border-color:var(--done)}
+.node .go{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:8px;min-width:0;border-radius:14px}
+.node .go:focus-visible{outline:3px solid var(--ink);outline-offset:4px}
+.disc{width:46px;height:46px;border-radius:50%;background:var(--c,var(--sky));color:var(--pastel-ink);display:grid;place-items:center;font-family:var(--font-display);font-weight:700;font-size:21px;transition:transform .15s}
+.node:not(.locked) .go:hover .disc{transform:scale(1.1) rotate(-6deg)}
+.range{font-weight:800;font-size:15px}
+.sub{font-size:12.5px;font-weight:700;color:var(--muted)}
+.dots{display:flex;gap:5px;align-items:center}
+.dots i{width:11px;height:11px;border-radius:50%;background:var(--track)}
+.dots i.on{background:var(--done)}
+.dots b{font-size:12px;margin-left:4px;color:var(--done-ink)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .dots b{color:var(--done)}}
+:root[data-theme="dark"] .dots b{color:var(--done)}
+.unlock{border:0;border-radius:14px;background:var(--butter);color:var(--pastel-ink);font-weight:800;padding:8px 10px;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 0 #e6cf6a}
+.unlock:active{transform:translateY(3px);box-shadow:0 1px 0 #e6cf6a}
+.unlock[disabled]{background:var(--track);box-shadow:none;color:var(--muted);cursor:default}
+.pop{animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.8);opacity:.2}}
+
+/* quiz */
+.q-top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin-bottom:14px}
+.ghost{background:none;border:0;display:flex;align-items:center;gap:4px;font-weight:800;color:var(--muted);padding:6px 4px;justify-self:start}
+.q-title{font-family:var(--font-display);font-weight:600;font-size:18px;text-align:center}
+.timer{justify-self:end;font-family:var(--font-display);font-weight:600;font-size:22px;font-variant-numeric:tabular-nums;background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:2px 12px;min-width:104px;text-align:center}
+.bar{position:relative;height:26px;border-radius:999px;background:var(--track);overflow:hidden;margin-bottom:18px;box-shadow:inset 0 2px 4px rgba(0,0,0,.12)}
+.fill{position:absolute;inset:0 auto 0 0;width:0;border-radius:999px;background:linear-gradient(90deg,var(--sky),var(--lilac));transition:width .55s cubic-bezier(.2,1.4,.4,1),background .4s}
+.bar.done .fill{background:var(--done);box-shadow:0 0 18px var(--done)}
+.bar-label{position:absolute;right:12px;top:0;bottom:0;display:flex;align-items:center;gap:5px;font-weight:800;font-size:13px;color:var(--pastel-ink);font-variant-numeric:tabular-nums}
+.q-card{background:var(--surface);border:2px solid var(--line);box-shadow:0 6px 0 var(--line);border-radius:26px;padding:20px 20px 16px;margin-bottom:18px}
+.q-card.enter{animation:enter .35s cubic-bezier(.2,1.3,.4,1)}
+@keyframes enter{from{transform:translateY(14px) scale(.97);opacity:0}}
+.q-meta{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;font-weight:800;color:var(--muted);margin-bottom:10px;min-height:26px}
+.streak{background:var(--butter);color:var(--pastel-ink);border-radius:999px;padding:2px 12px;font-weight:800}
+.streak:empty{display:none}
+.q-def{font-size:clamp(18px,3.6vw,22px);font-weight:700;line-height:1.4;margin:0 0 16px;text-wrap:pretty}
+.speed{height:7px;border-radius:99px;background:var(--surface2);overflow:hidden}
+.speed i{display:block;height:100%;width:100%;transform-origin:left;background:linear-gradient(90deg,var(--mint),var(--peach));border-radius:99px;animation:drain 10s linear forwards}
+.speed.hold i{animation-play-state:paused}
+@keyframes drain{to{transform:scaleX(0)}}
+.opts{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:600px){.opts{grid-template-columns:1fr 1fr}}
+.opt{display:flex;align-items:center;gap:12px;text-align:left;background:var(--surface);border:2px solid var(--line);box-shadow:0 5px 0 var(--line);border-radius:18px;padding:13px 14px;font-weight:800;font-size:16px;transition:transform .1s;min-width:0}
+.opt span{min-width:0;overflow-wrap:anywhere}
+.opt kbd{flex:none;width:28px;height:28px;border-radius:9px;background:var(--surface2);display:grid;place-items:center;font-family:var(--font-body);font-weight:800;font-size:13px;color:var(--muted)}
+.opt:not([disabled]):hover{transform:translateY(-2px)}
+.opt:not([disabled]):active{transform:translateY(4px);box-shadow:0 1px 0 var(--line)}
+.opt[disabled]{cursor:default}
+.opt.right{background:var(--mint);border-color:var(--mint);box-shadow:0 5px 0 #7fcaa6;color:var(--pastel-ink);animation:hop .4s}
+.opt.right kbd{background:rgba(255,255,255,.65);color:var(--pastel-ink)}
+.opt.wrong{background:var(--rose);border-color:var(--rose);box-shadow:0 5px 0 #e59ab3;color:var(--pastel-ink);animation:shake .4s}
+.opt.wrong kbd{background:rgba(255,255,255,.65);color:var(--pastel-ink)}
+@keyframes hop{40%{transform:translateY(-8px) scale(1.02)}}
+@keyframes shake{25%{transform:translateX(-7px)}50%{transform:translateX(7px)}75%{transform:translateX(-4px)}}
+.fb{min-height:24px;margin-top:14px;font-weight:800;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:18px;padding:13px 22px;font-family:var(--font-display);font-weight:600;font-size:18px;background:var(--lilac);color:var(--pastel-ink);box-shadow:0 5px 0 #a994ec}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 #a994ec}
+.btn.mint{background:var(--mint);box-shadow:0 5px 0 #7fcaa6}
+.btn.mint:active{box-shadow:0 1px 0 #7fcaa6}
+.btn[disabled]{background:var(--track);color:var(--muted);box-shadow:none;cursor:default;transform:none}
+.cont{margin-top:6px}
+
+/* result */
+.result{text-align:center;max-width:520px;margin:6px auto 0}
+.medal{width:96px;height:96px;margin:0 auto 10px;border-radius:50%;display:grid;place-items:center;background:var(--done);color:var(--done-ink);animation:pop .6s cubic-bezier(.2,1.6,.4,1)}
+.medal.no{background:var(--peach);color:var(--pastel-ink)}
+.result h2{font-family:var(--font-display);font-size:clamp(28px,6vw,38px);margin:0 0 4px}
+.result .bar{margin:18px 0}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 16px}
+.stat{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:10px 6px;min-width:0}
+.stat dt{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.stat dd{margin:2px 0 0;font-family:var(--font-display);font-weight:600;font-size:20px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.newrec{display:inline-block;background:var(--butter);color:var(--pastel-ink);font-weight:800;border-radius:99px;padding:3px 14px;margin-bottom:12px}
+.reward{display:flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-display);font-weight:600;font-size:22px;margin-bottom:16px;animation:pop .6s .2s both cubic-bezier(.2,1.6,.4,1)}
+.cta{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:14px}
+.note{color:var(--muted);font-weight:700;font-size:14px;margin:0 0 6px}
+.link{background:none;border:0;text-decoration:underline;font-weight:800;color:var(--muted);padding:8px}
+
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:50}
+.confetti i{position:absolute;top:-16px;width:10px;height:14px;border-radius:3px;animation:fall 1.9s ease-in forwards}
+@keyframes fall{to{transform:translate(var(--dx),110vh) rotate(var(--r))}}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">Control de Calidad</div>
+    <div class="hud">
+      <div class="coins" id="coins" aria-label="Monedas"></div>
+      <button class="iconbtn" id="snd" aria-label="Sonido"></button>
+    </div>
+  </header>
+  <main id="view"></main>
+</div>
+
+<script>
+const WORDS = [
+["Aleatorio","Que ocurre de manera impredecible, sin seguir un patrón o dirección definida."],
+["Calibración","Operación que establece la relación entre los valores de referencia y las indicaciones de un instrumento de medición."],
+["Calibrador","Material con una concentración o valor conocido que se utiliza para ajustar un sistema de medición."],
+["Conmutabilidad","Capacidad de un material de comportarse de manera similar a las muestras de pacientes en diferentes procedimientos de medición."],
+["Corrida analítica","Conjunto de análisis realizados bajo condiciones definidas durante un período determinado, en los que se evalúa el desempeño del sistema."],
+["Control de calidad","Conjunto de procedimientos destinados a detectar, evaluar y corregir errores para garantizar resultados confiables."],
+["Control valorado","Material de control que tiene valores o concentraciones asignados conocidos, utilizados para evaluar el desempeño analítico."],
+["Criterios de calidad","Requisitos o condiciones establecidos para determinar si un resultado o proceso cumple con los niveles de calidad aceptables."],
+["Control de proceso","Supervisión de las actividades de un proceso para comprobar que funcionan dentro de los parámetros establecidos."],
+["Error aleatorio","Variación impredecible de los resultados que afecta principalmente la precisión de las mediciones."],
+["Error sistemático","Desviación constante o predecible de los resultados en una misma dirección, que afecta principalmente la exactitud."],
+["Gestión de calidad","Actividades coordinadas para dirigir y controlar una organización en relación con la calidad."],
+["Garantía externa de calidad","Evaluación externa del desempeño del laboratorio mediante comparación con otros laboratorios o valores de referencia."],
+["Grupo par","Conjunto de laboratorios que utilizan métodos o sistemas de medición comparables para evaluar sus resultados."],
+["Incertidumbre de medida","Parámetro que expresa la duda asociada al resultado de una medición."],
+["Indicador de calidad","Medida utilizada para evaluar y supervisar el cumplimiento de los objetivos de calidad."],
+["Magnitud","Propiedad de un fenómeno, cuerpo o sustancia que puede expresarse cuantitativamente."],
+["Mensurando","Magnitud específica que se desea medir."],
+["Patrón de medición","Referencia establecida que se utiliza para definir, realizar o reproducir una unidad de medida o un valor."],
+["Procedimiento de medida","Descripción detallada de las operaciones utilizadas para realizar una medición."],
+["Pruebas de evaluación externa de calidad","Pruebas en las que un laboratorio analiza muestras proporcionadas por una entidad externa y compara sus resultados con los de otros laboratorios o valores establecidos."],
+["Reglas de control","Criterios estadísticos utilizados para determinar si una corrida analítica se acepta o se rechaza."],
+["Sesgo","Diferencia entre el resultado analítico esperado y el valor de referencia aceptado."],
+["Trazabilidad","Propiedad de un resultado de medición que permite relacionarlo con una referencia mediante una cadena documentada e ininterrumpida de calibraciones."],
+["Variable","Característica que puede tomar diferentes valores o categorías."],
+["Variable cuantitativa","Variable que se expresa mediante valores numéricos."],
+["Variable cualitativa","Variable que representa características o categorías no numéricas."],
+["Veracidad","Grado de concordancia entre el promedio de mediciones repetidas y un valor de referencia aceptado."],
+["Cobertura","Alcance o proporción de los elementos, procesos o actividades que están incluidos dentro de un sistema o servicio."],
+["Confiabilidad","Capacidad de un método o sistema para producir resultados consistentes y fiables."],
+["Control de primera opinión","Material de control diseñado para utilizarse con un sistema analítico específico y cuya evaluación depende principalmente del fabricante."],
+["Control de tercera opinión","Material de control independiente del fabricante, que permite evaluar el desempeño del sistema analítico de manera independiente."],
+["Dato aberrante","Resultado que se encuentra considerablemente alejado del comportamiento esperado del conjunto de datos."],
+["Desviación estándar","Medida estadística que indica cuánto se dispersan los resultados respecto a la media."],
+["Error total analítico","Combinación del error aleatorio y el error sistemático presentes en una medición."],
+["Error total permitido","Límite máximo de error que puede aceptarse en un resultado sin comprometer su utilidad clínica."],
+["Especificidad","Capacidad de una prueba para identificar correctamente a las personas que no presentan una enfermedad."],
+["Estado del arte","Conocimiento más actualizado y avanzado que existe sobre un tema o procedimiento."],
+["Exactitud","Grado de concordancia entre un resultado de medición y el valor verdadero o de referencia aceptado."],
+["Falso negativo","Resultado negativo en una persona que realmente presenta la enfermedad o condición evaluada."],
+["Falso positivo","Resultado positivo en una persona que realmente no presenta la enfermedad o condición evaluada."],
+["Imprecisión","Grado de dispersión entre resultados obtenidos al repetir una misma medición."],
+["Interensayo","Variabilidad observada entre diferentes ensayos o corridas analíticas."],
+["Intraensayo","Variabilidad observada entre mediciones repetidas dentro de un mismo ensayo o corrida analítica."],
+["Linealidad","Capacidad de un método para producir resultados proporcionales a la concentración del analito dentro de un intervalo determinado."],
+["Media","Promedio aritmético obtenido al sumar todos los valores y dividirlos entre el número de observaciones."],
+["Moda","Valor que aparece con mayor frecuencia en un conjunto de datos."],
+["Mediana","Valor central de un conjunto de datos ordenados."],
+["Multicalibrador","Material que contiene varios analitos o concentraciones asignadas y permite calibrar diferentes parámetros de un sistema analítico."],
+["Índice de desviación estándar (IDS)","Medida que expresa cuántas desviaciones estándar separan un resultado de la media o valor objetivo."],
+["Nivel sigma","Indicador estadístico que expresa el desempeño de un proceso en función de sus defectos y variabilidad respecto a los límites de especificación."],
+["Estándar","Material o referencia con un valor conocido que se utiliza como base para comparar o establecer mediciones."],
+["Variabilidad analítica","Variación de los resultados causada por el método, instrumento, reactivos u otras condiciones del proceso analítico."],
+["Variabilidad biológica","Variación natural de los componentes biológicos dentro de un mismo individuo o entre diferentes individuos."],
+["Validación de métodos","Proceso que demuestra mediante evidencias que un método es adecuado para el uso previsto."],
+["Target Score","Puntuación objetivo o valor de referencia que se utiliza para evaluar el desempeño alcanzado respecto a una meta establecida."]
+];
+
+const COST = 5;
+const SIZES = [10, 20, 30, 56];
+const COLORS = ['--sky','--lilac','--mint','--peach','--butter','--rose'];
+const KEY = 'quiz-calidad-v1';
+const $ = (s, r=document) => r.querySelector(s);
+const view = $('#view');
+
+/* ---------- state ---------- */
+function defaults(){ return {coins:0, unlocked:{}, comps:{}, best:{}, sound:true, size:10}; }
+let S = (function(){
+  try { const r = localStorage.getItem(KEY); if (r) return Object.assign(defaults(), JSON.parse(r)); } catch(e){}
+  return defaults();
+})();
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
+
+/* ---------- icons ---------- */
+const coinSVG = (s=22) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#ffe58a" stroke="#f0b84a" stroke-width="2"/><path d="M12 6.4l1.6 3.4 3.7.4-2.8 2.5.8 3.7-3.3-1.9-3.3 1.9.8-3.7-2.8-2.5 3.7-.4z" fill="#f0b84a"/></svg>`;
+const lockSVG = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="3"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>`;
+const checkSVG = (s=18) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`;
+const backSVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>`;
+const spkOn = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5v5h4l5 4v-13l-5 4z"/><path d="M16.5 9a4 4 0 0 1 0 6M18.8 6.5a7.5 7.5 0 0 1 0 11"/></svg>`;
+const spkOff = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5v5h4l5 4v-13l-5 4z"/><path d="M17 9.5l4 5M21 9.5l-4 5"/></svg>`;
+const starSVG = `<svg width="52" height="52" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.5 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/></svg>`;
+
+/* ---------- sound ---------- */
+let AC = null;
+function actx(){
+  if (!S.sound) return null;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    if (AC.state === 'suspended') AC.resume();
+    return AC;
+  } catch(e){ return null; }
+}
+function tone(f, t0, d, type='sine', g=.09, slide){
+  const c = actx(); if (!c) return;
+  const o = c.createOscillator(), a = c.createGain(), t = c.currentTime + t0;
+  o.type = type; o.frequency.setValueAtTime(f, t);
+  if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + d);
+  a.gain.setValueAtTime(.0001, t);
+  a.gain.exponentialRampToValueAtTime(g, t + .012);
+  a.gain.exponentialRampToValueAtTime(.0001, t + d);
+  o.connect(a); a.connect(c.destination);
+  o.start(t); o.stop(t + d + .05);
+}
+const SND = {
+  click(){ tone(660,0,.05,'triangle',.05); },
+  good(s){
+    const sc = [523.25,587.33,659.25,783.99,880,1046.5,1174.66];
+    const f = sc[Math.min(s, sc.length-1)];
+    tone(f,0,.14,'sine',.1); tone(f*1.5,.07,.22,'triangle',.07);
+  },
+  bad(){ tone(250,0,.24,'triangle',.1,150); },
+  coin(){ tone(988,0,.08,'square',.035); tone(1319,.08,.32,'square',.035); },
+  win(){ [523.25,659.25,783.99,1046.5,1318.5].forEach((f,i)=>tone(f,i*.09,.3,'triangle',.09)); },
+  fail(){ [392,349.2,329.6].forEach((f,i)=>tone(f,i*.13,.22,'triangle',.07)); },
+  unlock(){ tone(400,0,.4,'sine',.08,1200); tone(1568,.3,.3,'triangle',.05); }
+};
+
+/* ---------- helpers ---------- */
+const shuffle = a => { a = a.slice(); for (let i=a.length-1;i>0;i--){ const j=Math.random()*(i+1)|0; [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const levelsFor = size => { const out=[]; for (let i=0;i<WORDS.length;i+=size) out.push(Array.from({length:Math.min(size,WORDS.length-i)},(_,j)=>i+j)); return out; };
+const fmt = ms => { const s = ms/1000, m = Math.floor(s/60); return m + ':' + (s%60).toFixed(1).padStart(4,'0'); };
+const maxUnlocked = size => S.unlocked[size] || 0;
+const lkey = (size,l) => size + '-' + l;
+const esc = t => String(t).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+function hud(bump){
+  const el = $('#coins');
+  el.innerHTML = coinSVG(26) + '<span>' + S.coins + '</span>';
+  if (bump){ el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+  $('#snd').innerHTML = S.sound ? spkOn : spkOff;
+  $('#snd').setAttribute('aria-pressed', String(S.sound));
+}
+function confetti(){
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const box = document.createElement('div'); box.className = 'confetti';
+  for (let i=0;i<44;i++){
+    const s = document.createElement('i');
+    s.style.cssText = `left:${(Math.random()*100).toFixed(1)}%;background:var(${COLORS[i%6]});animation-delay:${(Math.random()*.5).toFixed(2)}s;--dx:${(Math.random()*180-90)|0}px;--r:${(Math.random()*720-360)|0}deg`;
+    box.appendChild(s);
+  }
+  document.body.appendChild(box);
+  setTimeout(()=>box.remove(), 2800);
+}
+
+/* ---------- home ---------- */
+function renderHome(){
+  stopTimer(); Q = null;
+  const size = S.size, lv = levelsFor(size), mu = maxUnlocked(size);
+  const seg = SIZES.map(n => `<button data-act="size" data-size="${n}" aria-pressed="${n===size}">${n===56?'Todas':n+' palabras'}<small>${Math.ceil(56/n)} ${Math.ceil(56/n)===1?'nivel':'niveles'}</small></button>`).join('');
+  const nodes = lv.map((ids,i) => {
+    const key = lkey(size,i), c = S.comps[key]||0, b = S.best[key]||{};
+    const open = i <= mu, next = i === mu+1;
+    const range = ids.length === 1 ? `${ids[0]+1}` : `${ids[0]+1} a ${ids[ids.length-1]+1}`;
+    const dots = Array.from({length:5},(_,k)=>`<i class="${k<Math.min(c,5)?'on':''}"></i>`).join('') + (c>5?`<b>×${c}</b>`:'');
+    const rec = b.time ? `Récord ${fmt(b.time)}` : (b.acc ? `Mejor ${b.acc}/${ids.length}` : 'Sin récord');
+    const style = `style="--c:var(${COLORS[i%6]})"`;
+    if (open){
+      return `<div class="node ${c>=5?'master':''}" ${style}>
+        <button class="go" data-act="play" data-lvl="${i}" aria-label="Jugar nivel ${i+1}, palabras ${range}">
+          <span class="disc">${c>=5?checkSVG(24):i+1}</span>
+          <span class="range">Palabras ${range}</span>
+          <span class="dots" aria-label="${c} completados">${dots}</span>
+          <span class="sub">${rec}</span>
+        </button></div>`;
+    }
+    const need = Math.max(0, COST - S.coins);
+    const action = next
+      ? `<button class="unlock" data-act="unlock" data-lvl="${i}" ${S.coins>=COST?'':'disabled'}>${coinSVG(18)} ${S.coins>=COST?'Desbloquear · '+COST:'Faltan '+need}</button>`
+      : `<span class="sub">Cuesta ${COST} monedas</span>`;
+    return `<div class="node locked" ${style}>
+        <span class="disc" style="background:var(--track);color:var(--muted)">${lockSVG}</span>
+        <span class="range">Palabras ${range}</span>
+        ${action}
+      </div>`;
+  }).join('');
+  view.innerHTML = `
+    <section class="pop">
+      <div class="eyebrow">Glosario · 56 conceptos</div>
+      <h1>Domina cada concepto</h1>
+      <p class="lead">Responde rápido y sin fallos. Cada nivel perfecto da 1 moneda y cada nivel nuevo cuesta ${COST}, así que lo repites hasta que se te queda.</p>
+      <div class="seg" role="group" aria-label="Tamaño de nivel">${seg}</div>
+      <div class="map">${nodes}</div>
+    </section>`;
+}
+
+/* ---------- quiz ---------- */
+let Q = null;
+function startLevel(size, lvl){
+  const ids = levelsFor(size)[lvl];
+  stopTimer();
+  Q = {size, lvl, order: shuffle(ids), i:0, correct:0, streak:0, elapsed:0, running:false, last:0, locked:true, cur:null, iv:null};
+  const total = ids.length;
+  view.innerHTML = `
+    <section class="quiz">
+      <div class="q-top">
+        <button class="ghost" data-act="home">${backSVG} Mapa</button>
+        <div class="q-title">Nivel ${lvl+1}</div>
+        <div class="timer" id="timer" aria-label="Cronómetro">0:00.0</div>
+      </div>
+      <div class="bar" id="bar" role="progressbar" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="0" aria-label="Respuestas correctas">
+        <div class="fill" id="fill"></div>
+        <div class="bar-label" id="barlabel">0/${total}</div>
+      </div>
+      <div class="q-card" id="qcard">
+        <div class="q-meta"><span id="qn"></span><span class="streak" id="streak"></span></div>
+        <p class="q-def" id="qdef"></p>
+        <div class="speed" id="speed"><i></i></div>
+      </div>
+      <div class="opts" id="opts"></div>
+      <div class="fb" id="fb" aria-live="polite"></div>
+      <button class="btn cont" id="cont" data-act="cont" hidden>Continuar</button>
+    </section>`;
+  Q.iv = setInterval(tick, 80);
+  showQ();
+}
+function distract(w){
+  const words = WORDS[w][0].toLowerCase().split(/\s+/).filter(p => p.length > 3);
+  const sim = shuffle(WORDS.map((x,i)=>i).filter(i => i!==w && words.some(p => WORDS[i][0].toLowerCase().includes(p))));
+  const pick = sim.slice(0,2);
+  const rest = shuffle(WORDS.map((x,i)=>i).filter(i => i!==w && !pick.includes(i)));
+  while (pick.length < 3) pick.push(rest.shift());
+  return pick;
+}
+function showQ(){
+  const w = Q.order[Q.i], opts = shuffle([w, ...distract(w)]);
+  Q.cur = {w, opts, ans: opts.indexOf(w)}; Q.locked = false;
+  $('#qn').textContent = `Definición ${Q.i+1} de ${Q.order.length}`;
+  $('#qdef').textContent = WORDS[w][1];
+  $('#opts').innerHTML = opts.map((o,k)=>`<button class="opt" data-k="${k}"><kbd>${k+1}</kbd><span>${esc(WORDS[o][0])}</span></button>`).join('');
+  $('#fb').textContent = ''; $('#cont').hidden = true;
+  const card = $('#qcard'); card.classList.remove('enter'); void card.offsetWidth; card.classList.add('enter');
+  const sp = $('#speed'); const clone = sp.cloneNode(true); sp.replaceWith(clone);
+  Q.running = true; Q.last = performance.now();
+}
+function tick(){
+  if (!Q) return;
+  if (Q.running){ const n = performance.now(); Q.elapsed += n - Q.last; Q.last = n; }
+  const t = $('#timer'); if (t) t.textContent = fmt(Q.elapsed);
+}
+function stopTimer(){ if (Q && Q.iv){ clearInterval(Q.iv); Q.iv = null; } }
+function answer(k){
+  if (!Q || Q.locked) return;
+  Q.locked = true; tick(); Q.running = false;
+  const ok = k === Q.cur.ans, btns = [...document.querySelectorAll('.opt')];
+  btns.forEach(b => b.disabled = true);
+  btns[Q.cur.ans].classList.add('right');
+  $('#speed').classList.add('hold');
+  if (ok){
+    Q.correct++; Q.streak++;
+    SND.good(Q.streak - 1);
+    setBar();
+    setTimeout(advance, 560);
+  } else {
+    Q.streak = 0; btns[k].classList.add('wrong'); SND.bad();
+    $('#fb').textContent = 'Era: ' + WORDS[Q.cur.w][0];
+    const c = $('#cont'); c.hidden = false; c.focus();
+  }
+  const st = $('#streak'); st.textContent = Q.streak >= 2 ? `Racha ×${Q.streak}` : '';
+}
+function setBar(){
+  const total = Q.order.length, pct = Q.correct/total*100;
+  $('#fill').style.width = pct + '%';
+  $('#barlabel').textContent = Q.correct + '/' + total;
+  $('#bar').setAttribute('aria-valuenow', Q.correct);
+}
+function advance(){
+  if (!Q) return;
+  Q.i++;
+  if (Q.i >= Q.order.length) finish(); else showQ();
+}
+
+/* ---------- result ---------- */
+function finish(){
+  tick(); stopTimer();
+  const total = Q.order.length, perfect = Q.correct === total, key = lkey(Q.size,Q.lvl);
+  const b = S.best[key] || {}; let newRec = false;
+  if (perfect){
+    S.coins++; S.comps[key] = (S.comps[key]||0) + 1;
+    if (b.time && Q.elapsed < b.time) newRec = true;
+    if (!b.time || Q.elapsed < b.time) b.time = Q.elapsed;
+  }
+  b.acc = Math.max(b.acc||0, Q.correct); S.best[key] = b; save();
+  Q.result = {perfect, newRec, total};
+  renderResult();
+  hud(perfect);
+  if (perfect){ SND.win(); setTimeout(SND.coin, 520); confetti(); } else SND.fail();
+}
+function renderResult(){
+  const {perfect, newRec, total} = Q.result, size = Q.size, L = levelsFor(size).length;
+  const key = lkey(size,Q.lvl), b = S.best[key] || {};
+  const next = Q.lvl + 1, hasNext = next < L, mu = maxUnlocked(size);
+  let nextBtn = '', note = '';
+  if (hasNext){
+    if (next <= mu) nextBtn = `<button class="btn mint" data-act="next">Avanzar</button>`;
+    else if (S.coins >= COST) nextBtn = `<button class="btn mint" data-act="next">Avanzar · ${COST} ${coinSVG(20)}</button>`;
+    else { nextBtn = `<button class="btn" disabled>Avanzar · ${COST} ${coinSVG(20)}</button>`; note = `Te faltan ${COST - S.coins} ${COST - S.coins === 1 ? 'moneda' : 'monedas'} para abrir el siguiente nivel.`; }
+  } else {
+    nextBtn = `<button class="btn mint" data-act="home">Cambiar de modo</button>`;
+    note = 'Es el último nivel de este modo.';
+  }
+  view.innerHTML = `
+    <section class="result" aria-live="polite">
+      <div class="medal ${perfect?'':'no'}">${perfect?checkSVG(52):starSVG}</div>
+      <h2>${perfect?'Nivel completo':'Casi lo tienes'}</h2>
+      <p class="note">${perfect?'Todas correctas.':`Acertaste ${Q.correct} de ${total}. Para ganar la moneda necesitas las ${total}.`}</p>
+      <div class="bar ${perfect?'done':''}" role="progressbar" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${Q.correct}">
+        <div class="fill" id="rfill"></div>
+        <div class="bar-label">${perfect?checkSVG(14):''}${Q.correct}/${total}</div>
+      </div>
+      ${newRec?'<div class="newrec">Nuevo récord</div>':''}
+      <dl class="stats">
+        <div class="stat"><dt>Aciertos</dt><dd>${Q.correct}/${total}</dd></div>
+        <div class="stat"><dt>Tiempo</dt><dd>${fmt(Q.elapsed)}</dd></div>
+        <div class="stat"><dt>Récord</dt><dd>${b.time?fmt(b.time):'—'}</dd></div>
+      </dl>
+      ${perfect?`<div class="reward">${coinSVG(30)} +1 moneda</div>`:''}
+      <div class="cta">
+        <button class="btn" data-act="retry">Repetir</button>
+        ${nextBtn}
+      </div>
+      ${note?`<p class="note">${note}</p>`:''}
+      <button class="link" data-act="home">Volver al mapa</button>
+    </section>`;
+  requestAnimationFrame(() => requestAnimationFrame(() => { const f = $('#rfill'); if (f) f.style.width = (Q.correct/total*100) + '%'; }));
+}
+
+/* ---------- events ---------- */
+view.addEventListener('click', e => {
+  const o = e.target.closest('.opt');
+  if (o && !o.disabled){ answer(+o.dataset.k); return; }
+  const a = e.target.closest('[data-act]'); if (!a || a.disabled) return;
+  const act = a.dataset.act;
+  if (act === 'size'){ SND.click(); S.size = +a.dataset.size; save(); renderHome(); }
+  else if (act === 'play'){ SND.click(); startLevel(S.size, +a.dataset.lvl); }
+  else if (act === 'unlock'){
+    const l = +a.dataset.lvl;
+    if (S.coins >= COST && l === maxUnlocked(S.size) + 1){
+      S.coins -= COST; S.unlocked[S.size] = l; save(); SND.unlock(); hud(true); confetti(); renderHome();
+    }
+  }
+  else if (act === 'home'){ SND.click(); renderHome(); }
+  else if (act === 'retry'){ SND.click(); startLevel(Q.size, Q.lvl); }
+  else if (act === 'next'){
+    const n = Q.lvl + 1, size = Q.size;
+    if (n > maxUnlocked(size)){
+      if (S.coins < COST) return;
+      S.coins -= COST; S.unlocked[size] = n; save(); SND.unlock(); hud(true);
+    } else SND.click();
+    startLevel(size, n);
+  }
+  else if (act === 'cont'){ SND.click(); advance(); }
+});
+$('#snd').addEventListener('click', () => { S.sound = !S.sound; save(); hud(false); if (S.sound) SND.click(); });
+document.addEventListener('keydown', e => {
+  if (!Q || !$('#opts')) return;
+  if (e.key >= '1' && e.key <= '4'){ answer(+e.key - 1); }
+  else if (e.key === 'Enter' && !$('#cont').hidden){ e.preventDefault(); SND.click(); advance(); }
+});
+
+hud(false);
+renderHome();
+</script>
+
+</body></html>
